@@ -10,23 +10,38 @@ export interface EventAvailability {
   error?: string;
 }
 
-// Map our event IDs to their booking URLs
+// Map our event IDs to their booking URLs (from events.ts)
 export const BOOKABLE_EVENTS: { eventId: string; bookingUrl: string }[] = [
   { eventId: "se-1", bookingUrl: "https://www.nomadsummit.com/event/nomad-summit-pool-party-26/" },
   { eventId: "se-2", bookingUrl: "https://www.nomadsummit.com/event/mindful-journaling-for-content-creators/" },
   { eventId: "se-3", bookingUrl: "https://www.nomadsummit.com/event/house-and-pet-sitting-meetup/" },
-  { eventId: "se-4", bookingUrl: "https://www.nomadsummit.com/event/ai-productivity-workshop/" },
-  { eventId: "se-5", bookingUrl: "https://www.nomadsummit.com/event/thai-cooking-class-nomads/" },
-  { eventId: "se-6", bookingUrl: "https://www.nomadsummit.com/event/mind-your-business-mindfulness/" },
-  { eventId: "se-7", bookingUrl: "https://www.nomadsummit.com/event/the-deal-room-flippa/" },
-  { eventId: "se-8", bookingUrl: "https://www.nomadsummit.com/event/temple-run-doi-suthep/" },
-  { eventId: "se-9", bookingUrl: "https://www.nomadsummit.com/event/content-creator-meetup/" },
-  { eventId: "se-10", bookingUrl: "https://www.nomadsummit.com/event/women-nomads-lunch/" },
-  { eventId: "se-11", bookingUrl: "https://www.nomadsummit.com/event/tax-residency-workshop/" },
-  { eventId: "se-12", bookingUrl: "https://www.nomadsummit.com/event/muay-thai-experience/" },
-  { eventId: "se-13", bookingUrl: "https://www.nomadsummit.com/event/saas-founders-dinner/" },
-  { eventId: "se-14", bookingUrl: "https://www.nomadsummit.com/event/buildathon-finals/" },
-  { eventId: "se-15", bookingUrl: "https://www.nomadsummit.com/event/closing-party-2026/" },
+  { eventId: "se-4", bookingUrl: "https://www.nomadsummit.com/event/nomad-destinations-where-next-2/" },
+  { eventId: "se-5", bookingUrl: "https://www.nomadsummit.com/event/nervous-system-reset/" },
+  { eventId: "se-6", bookingUrl: "https://www.nomadsummit.com/event/fukuoka-taiwan-ramen-night/" },
+  { eventId: "se-7", bookingUrl: "https://www.nomadsummit.com/event/brazil-south-america-nomad-base/" },
+  { eventId: "se-8", bookingUrl: "https://www.nomadsummit.com/event/buildathon-teams-at-work/" },
+  { eventId: "se-9", bookingUrl: "https://www.nomadsummit.com/event/mind-your-business-mindfulness/" },
+  { eventId: "se-10", bookingUrl: "https://www.nomadsummit.com/event/the-deal-room/" },
+  { eventId: "se-11", bookingUrl: "https://www.nomadsummit.com/event/buildathon-final-pitches/" },
+  { eventId: "se-12", bookingUrl: "https://www.nomadsummit.com/event/extreme-travel-meetup/" },
+  { eventId: "se-13", bookingUrl: "https://www.nomadsummit.com/event/replaced-300k-agency-custom-gpt/" },
+  { eventId: "se-14", bookingUrl: "https://www.nomadsummit.com/event/padel-social/" },
+  { eventId: "se-15", bookingUrl: "https://www.nomadsummit.com/event/linkedin-profile-makeover/" },
+  { eventId: "se-16", bookingUrl: "https://www.nomadsummit.com/event/marketing-strategy-design/" },
+  { eventId: "se-17", bookingUrl: "https://www.nomadsummit.com/event/hunt-million-dollar-idea/" },
+  { eventId: "se-18", bookingUrl: "https://www.nomadsummit.com/event/taxes-offshore-cigars-whiskey/" },
+  { eventId: "se-19", bookingUrl: "https://www.nomadsummit.com/event/blog-business-pinterest/" },
+  { eventId: "se-20", bookingUrl: "https://www.nomadsummit.com/event/practical-investing-financial-freedom/" },
+  { eventId: "se-21", bookingUrl: "https://www.nomadsummit.com/event/coworking-session-aditi/" },
+  { eventId: "se-22", bookingUrl: "https://www.nomadsummit.com/event/business-automated-ai-systems/" },
+  { eventId: "se-23", bookingUrl: "https://www.nomadsummit.com/event/match-me-if-you-can/" },
+  { eventId: "se-24", bookingUrl: "https://www.nomadsummit.com/event/board-game-night/" },
+  { eventId: "se-25", bookingUrl: "https://www.nomadsummit.com/event/ads-for-breakfast/" },
+  { eventId: "se-26", bookingUrl: "https://www.nomadsummit.com/event/slomading-nomads-next-step/" },
+  { eventId: "se-27", bookingUrl: "https://www.nomadsummit.com/event/ai-masterclass-coaches-consultants/" },
+  { eventId: "se-28", bookingUrl: "https://www.nomadsummit.com/event/americano-padel-tournament/" },
+  { eventId: "se-29", bookingUrl: "https://www.nomadsummit.com/event/make-nomad-summit-better/" },
+  { eventId: "se-30", bookingUrl: "https://www.nomadsummit.com/event/official-closing-finale-afterglow/" },
 ];
 
 /**
