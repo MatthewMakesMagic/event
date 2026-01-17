@@ -1,26 +1,171 @@
 @import "tailwindcss";
 
-:root {
-  --background: #ffffff;
-  --foreground: #171717;
+@theme {
+  /* Pangia Brand Colors */
+  --color-pangia-black: #1a1818;
+  --color-pangia-white: #ffffff;
+  --color-pangia-offwhite: #f8f7f5;
+
+  /* Midnight in Reykjavík */
+  --color-midnight-deep: #042d4b;
+  --color-midnight-light: #0f516b;
+  --color-midnight-surface: #0a3d5c;
+
+  /* Dawn in Marrakech */
+  --color-dawn-teal: #21a3cb;
+  --color-dawn-light: #7fc2cb;
+  --color-dawn-sand: #e5ba8f;
+
+  /* Daybreak in Palermo */
+  --color-daybreak-gold: #feda6a;
+  --color-daybreak-mid: #ffe08d;
+  --color-daybreak-cream: #ffe9b8;
+
+  /* Golden Hour in Oaxaca */
+  --color-golden-coral: #fd502f;
+  --color-golden-dusty: #de705f;
+  --color-golden-rose: #b55e68;
+
+  /* Twilight in Tokyo */
+  --color-twilight-pink: #fd7c8e;
+  --color-twilight-magenta: #c0548e;
+  --color-twilight-purple: #8b3b78;
 }
 
-@theme inline {
-  --color-background: var(--background);
-  --color-foreground: var(--foreground);
-  --font-sans: var(--font-geist-sans);
-  --font-mono: var(--font-geist-mono);
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --background: #0a0a0a;
-    --foreground: #ededed;
-  }
+/* Base styles */
+html {
+  scroll-behavior: smooth;
+  -webkit-tap-highlight-color: transparent;
 }
 
 body {
-  background: var(--background);
-  color: var(--foreground);
-  font-family: Arial, Helvetica, sans-serif;
+  background: linear-gradient(180deg, #042d4b 0%, #0f516b 100%);
+  min-height: 100vh;
+  min-height: 100dvh;
+  color: #ffffff;
+  font-feature-settings: "kern" 1, "liga" 1;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Custom scrollbar for webkit browsers */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+/* Hide scrollbar for day tabs but keep functionality */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+/* Glass effect */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+}
+
+/* Live pulse animation */
+.live-pulse {
+  animation: pulse-live 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+@keyframes pulse-live {
+  0%, 100% {
+    box-shadow: 0 0 0 0 rgba(254, 218, 106, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 0 12px rgba(254, 218, 106, 0);
+  }
+}
+
+/* Safe area for iOS */
+.safe-bottom {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.safe-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+/* Touch feedback */
+.touch-feedback {
+  transition: transform 0.1s ease, opacity 0.1s ease;
+}
+
+.touch-feedback:active {
+  transform: scale(0.98);
+  opacity: 0.9;
+}
+
+/* Gradient text */
+.gradient-text-dawn {
+  background: linear-gradient(135deg, #21a3cb 0%, #7fc2cb 50%, #e5ba8f 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-golden {
+  background: linear-gradient(135deg, #fd502f 0%, #de705f 50%, #b55e68 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.gradient-text-twilight {
+  background: linear-gradient(135deg, #fd7c8e 0%, #c0548e 50%, #8b3b78 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+/* Card hover states */
+.card-hover {
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.card-hover:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.3);
+}
+
+/* Timeline line */
+.timeline-line {
+  position: relative;
+}
+
+.timeline-line::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 2px;
+  background: linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.05) 100%);
 }
