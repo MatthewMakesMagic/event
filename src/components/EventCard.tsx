@@ -137,10 +137,10 @@ export default function EventCard({
                   {event.venue.name}
                 </span>
               )}
-              {event.spotsAvailable !== undefined && event.spotsAvailable > 0 && !event.isSoldOut && (
+              {event.spotsAvailable !== undefined && event.spotsAvailable > 0 && !event.isSoldOut && event.type === "side_event" && (
                 <span className="flex items-center gap-1 text-daybreak-gold/70">
                   <Users className="w-3 h-3" />
-                  {event.spotsAvailable} spots
+                  {event.spotsAvailable} public spots
                 </span>
               )}
             </div>
@@ -193,7 +193,7 @@ export default function EventCard({
                     </p>
                   </div>
                   <div>
-                    <p className="text-white/50 text-xs">Standard</p>
+                    <p className="text-white/50 text-xs">Attendees</p>
                     <p className="font-medium text-white">
                       {event.pricing.standardAttendee === 0 ? "Free" : `${event.pricing.standardAttendee}฿`}
                     </p>
@@ -208,17 +208,12 @@ export default function EventCard({
               </div>
             )}
             
-            {/* Tags */}
-            <div className="flex flex-wrap gap-2 mb-4">
-              {event.tags.map((tag) => (
-                <span
-                  key={tag}
-                  className="text-xs px-2 py-1 rounded-full bg-white/5 text-white/60"
-                >
-                  #{tag}
-                </span>
-              ))}
-            </div>
+            {/* Booking disclaimer for side events */}
+            {event.type === "side_event" && event.bookingUrl && (
+              <p className="text-2xs text-white/40 mb-3 italic">
+                Availability may have changed. Tap "Book Now" to check current status on the official site.
+              </p>
+            )}
             
             {/* Actions */}
             <div className="flex gap-2">
