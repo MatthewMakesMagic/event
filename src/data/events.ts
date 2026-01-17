@@ -782,7 +782,7 @@ const SIDE_EVENTS: Event[] = [
     pricing: { premiumAttendee: 0, standardAttendee: 0, nonAttendee: 300 },
     tags: ["wellness", "health", "workshop"],
     emoji: "🧘",
-    bookingUrl: "https://www.nomadsummit.com/event/nervous-system-reset/",
+    bookingUrl: "https://www.nomadsummit.com/event/nervous-system-reset-for-the-asap-world/",
   },
   {
     id: "se-6",
@@ -814,7 +814,7 @@ const SIDE_EVENTS: Event[] = [
     pricing: { premiumAttendee: 0, standardAttendee: 0, nonAttendee: 300 },
     tags: ["travel", "south-america", "meetup"],
     emoji: "🌎",
-    bookingUrl: "https://www.nomadsummit.com/event/brazil-south-america-nomad-base/",
+    bookingUrl: "https://www.nomadsummit.com/event/brazil-south-america-as-a-digital-nomad-base-a-practical-alternative-to-asia/",
   },
   {
     id: "se-8",
@@ -830,7 +830,7 @@ const SIDE_EVENTS: Event[] = [
     pricing: { premiumAttendee: 0, standardAttendee: 0, nonAttendee: 300 },
     tags: ["building", "hackathon", "coding"],
     emoji: "🔨",
-    bookingUrl: "https://www.nomadsummit.com/event/buildathon-teams-at-work/",
+    bookingUrl: "https://www.nomadsummit.com/event/buildathon-teams-at-work-2/",
   },
   {
     id: "se-9",
@@ -846,7 +846,7 @@ const SIDE_EVENTS: Event[] = [
     pricing: { premiumAttendee: 0, standardAttendee: 0, nonAttendee: 300 },
     tags: ["wellness", "business", "workshop"],
     emoji: "🧠",
-    bookingUrl: "https://www.nomadsummit.com/event/mind-your-business-mindfulness/",
+    bookingUrl: "https://www.nomadsummit.com/event/mind-your-business-with-mindfulness/",
   },
   {
     id: "se-10",
@@ -864,7 +864,23 @@ const SIDE_EVENTS: Event[] = [
     tags: ["exits", "flippa", "premium"],
     emoji: "💼",
     isFeatured: true,
-    bookingUrl: "https://www.nomadsummit.com/event/the-deal-room/",
+    bookingUrl: "https://www.nomadsummit.com/event/the-deal-room-2026-chiang-mai-thailand/",
+  },
+  {
+    id: "se-10b",
+    title: "How to Turn a Podcast into a Lead & Revenue Engine",
+    type: "side_event",
+    date: "2026-01-20",
+    startTime: "15:00",
+    endTime: "17:00",
+    venue: VENUES.FELLOWSHIP,
+    organizer: "Podcast Workshop",
+    description: "Learn how to transform your podcast from a hobby into a powerful lead generation and revenue engine for your business.",
+    shortDescription: "Turn your podcast into a business asset",
+    pricing: { premiumAttendee: 0, standardAttendee: 0, nonAttendee: 300 },
+    tags: ["podcast", "marketing", "revenue"],
+    emoji: "🎙️",
+    bookingUrl: "https://www.nomadsummit.com/event/how-to-turn-a-podcast-into-a-lead-revenue-engine/",
   },
   {
     id: "se-11",
@@ -880,7 +896,7 @@ const SIDE_EVENTS: Event[] = [
     pricing: { premiumAttendee: 0, standardAttendee: 0, nonAttendee: 300 },
     tags: ["building", "hackathon", "pitches"],
     emoji: "🎤",
-    bookingUrl: "https://www.nomadsummit.com/event/buildathon-final-pitches/",
+    bookingUrl: "https://www.nomadsummit.com/event/buildathon-final-pitches-2/",
   },
   {
     id: "se-12",
@@ -915,7 +931,7 @@ const SIDE_EVENTS: Event[] = [
     emoji: "🤖",
     isSoldOut: true,
     isFeatured: true,
-    bookingUrl: "https://www.nomadsummit.com/event/replaced-300k-agency-custom-gpt/",
+    bookingUrl: "https://www.nomadsummit.com/event/how-i-replaced-a-300k-agency-with-a-custom-gpt-and-how-you-can-find-yours/",
   },
   {
     id: "se-14",
@@ -934,6 +950,22 @@ const SIDE_EVENTS: Event[] = [
     bookingUrl: "https://www.nomadsummit.com/event/padel-social/",
   },
   {
+    id: "se-14b",
+    title: "Inside Nomad Life – A Live Nomad Summit Podcast Recording",
+    type: "side_event",
+    date: "2026-01-21",
+    startTime: "09:30",
+    endTime: "11:30",
+    venue: VENUES.FELLOWSHIP,
+    organizer: "Nomad Summit Podcast",
+    description: "Be part of a live recording of the Nomad Summit podcast. Watch interviews with nomad community members and get a behind-the-scenes look at podcast production.",
+    shortDescription: "Live podcast recording session",
+    pricing: { premiumAttendee: 0, standardAttendee: 0, nonAttendee: 300 },
+    tags: ["podcast", "live", "community"],
+    emoji: "🎧",
+    bookingUrl: "https://www.nomadsummit.com/event/inside-nomad-life-a-live-nomad-summit-podcast-recording/",
+  },
+  {
     id: "se-15",
     title: "LinkedIn profile makeover for business owners",
     type: "side_event",
@@ -947,7 +979,7 @@ const SIDE_EVENTS: Event[] = [
     pricing: { premiumAttendee: 0, standardAttendee: 0, nonAttendee: 300 },
     tags: ["linkedin", "marketing", "workshop"],
     emoji: "💼",
-    bookingUrl: "https://www.nomadsummit.com/event/linkedin-profile-makeover/",
+    bookingUrl: "https://www.nomadsummit.com/event/linkedin-profile-makeover-for-business-owners-turn-your-profile-into-a-client-magnet/",
   },
   {
     id: "se-16",
@@ -979,7 +1011,7 @@ const SIDE_EVENTS: Event[] = [
     pricing: { premiumAttendee: 0, standardAttendee: 0, nonAttendee: 300 },
     tags: ["ideas", "brainstorming", "workshop"],
     emoji: "💡",
-    bookingUrl: "https://www.nomadsummit.com/event/hunt-million-dollar-idea/",
+    bookingUrl: "https://www.nomadsummit.com/event/hunt-your-next-million-dollar-idea-a-vibe-building-session/",
   },
   {
     id: "se-18",
@@ -995,7 +1027,7 @@ const SIDE_EVENTS: Event[] = [
     pricing: { premiumAttendee: 0, standardAttendee: 0, nonAttendee: 300 },
     tags: ["taxes", "offshore", "networking"],
     emoji: "💰",
-    bookingUrl: "https://www.nomadsummit.com/event/taxes-offshore-cigars-whiskey/",
+    bookingUrl: "https://www.nomadsummit.com/event/taxes-offshore-meetup-low-risky-cigars-whiskey/",
   },
   {
     id: "se-19",
@@ -1011,7 +1043,7 @@ const SIDE_EVENTS: Event[] = [
     pricing: { premiumAttendee: 0, standardAttendee: 0, nonAttendee: 300 },
     tags: ["pinterest", "content", "monetization"],
     emoji: "📌",
-    bookingUrl: "https://www.nomadsummit.com/event/blog-business-pinterest/",
+    bookingUrl: "https://www.nomadsummit.com/event/from-blog-to-business-monetizing-content-with-pinterest/",
   },
   {
     id: "se-20",
@@ -1027,7 +1059,7 @@ const SIDE_EVENTS: Event[] = [
     pricing: { premiumAttendee: 0, standardAttendee: 0, nonAttendee: 300 },
     tags: ["investing", "finance", "workshop"],
     emoji: "📊",
-    bookingUrl: "https://www.nomadsummit.com/event/practical-investing-financial-freedom/",
+    bookingUrl: "https://www.nomadsummit.com/event/practical-investing-for-financial-freedom/",
   },
   {
     id: "se-21",
@@ -1043,7 +1075,7 @@ const SIDE_EVENTS: Event[] = [
     pricing: { premiumAttendee: 0, standardAttendee: 0, nonAttendee: 300 },
     tags: ["coworking", "productivity", "social"],
     emoji: "💻",
-    bookingUrl: "https://www.nomadsummit.com/event/coworking-session-aditi/",
+    bookingUrl: "https://www.nomadsummit.com/event/coworking-session-with-aditi/",
   },
   {
     id: "se-22",
@@ -1059,7 +1091,7 @@ const SIDE_EVENTS: Event[] = [
     pricing: { premiumAttendee: 0, standardAttendee: 0, nonAttendee: 300 },
     tags: ["ai", "automation", "business"],
     emoji: "⚡",
-    bookingUrl: "https://www.nomadsummit.com/event/business-automated-ai-systems/",
+    bookingUrl: "https://www.nomadsummit.com/event/your-business-but-automated-how-founders-build-ai-systems-that-actually-run/",
   },
   {
     id: "se-23",
@@ -1123,7 +1155,7 @@ const SIDE_EVENTS: Event[] = [
     pricing: { premiumAttendee: 0, standardAttendee: 0, nonAttendee: 300 },
     tags: ["slomad", "lifestyle", "meetup"],
     emoji: "🐢",
-    bookingUrl: "https://www.nomadsummit.com/event/slomading-nomads-next-step/",
+    bookingUrl: "https://www.nomadsummit.com/event/slomading-the-nomads-next-step/",
   },
   {
     id: "se-27",
@@ -1139,7 +1171,7 @@ const SIDE_EVENTS: Event[] = [
     pricing: { premiumAttendee: 0, standardAttendee: 0, nonAttendee: 300 },
     tags: ["ai", "coaching", "workshop"],
     emoji: "🤖",
-    bookingUrl: "https://www.nomadsummit.com/event/ai-masterclass-coaches-consultants/",
+    bookingUrl: "https://www.nomadsummit.com/event/ai-masterclass-practical-ai-systems-for-coaches-consultants/",
   },
   {
     id: "se-28",
@@ -1155,7 +1187,7 @@ const SIDE_EVENTS: Event[] = [
     pricing: { premiumAttendee: 0, standardAttendee: 0, nonAttendee: 300 },
     tags: ["sports", "padel", "tournament"],
     emoji: "🏆",
-    bookingUrl: "https://www.nomadsummit.com/event/americano-padel-tournament/",
+    bookingUrl: "https://www.nomadsummit.com/event/padel-tournament/",
   },
   {
     id: "se-29",
@@ -1171,7 +1203,7 @@ const SIDE_EVENTS: Event[] = [
     pricing: { premiumAttendee: 0, standardAttendee: 0, nonAttendee: 300 },
     tags: ["feedback", "community", "meetup"],
     emoji: "💬",
-    bookingUrl: "https://www.nomadsummit.com/event/make-nomad-summit-better/",
+    bookingUrl: "https://www.nomadsummit.com/event/lets-make-the-nomad-summit-better-2/",
   },
   {
     id: "se-30",
@@ -1189,7 +1221,7 @@ const SIDE_EVENTS: Event[] = [
     tags: ["party", "closing", "networking"],
     emoji: "🎉",
     isFeatured: true,
-    bookingUrl: "https://www.nomadsummit.com/event/official-closing-finale-afterglow/",
+    bookingUrl: "https://www.nomadsummit.com/event/official-closing-finale-cm-dnxc-the-afterglow/",
   },
 ];
 

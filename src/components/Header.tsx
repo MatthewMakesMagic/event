@@ -40,8 +40,8 @@ export default function Header({ currentTime, onEventSelect }: HeaderProps) {
                 <h1 className="text-xl font-semibold text-white tracking-tight">
                   Pangia.
                 </h1>
-                <p className="text-xs text-white/50">
-                  {formattedDate} · {formattedTime} ICT
+                <p className="text-2xs text-twilight-pink/80">
+                  Thanks for an amazing event, Christoph & Alexandra! 💜
                 </p>
               </div>
             </div>

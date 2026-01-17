@@ -5,6 +5,83 @@ import { Event } from "@/data/events";
 import { MapPin, Clock, Users, Calendar, ChevronDown, ChevronUp, Ticket, ExternalLink } from "lucide-react";
 import InterestButton from "./InterestButton";
 
+// Generate ICS calendar file content
+function generateICS(event: Event): string {
+  const [year, month, day] = event.date.split("-").map(Number);
+  const [startHour, startMin] = event.startTime.split(":").map(Number);
+  
+  // Calculate end time
+  let endHour = startHour;
+  let endMin = startMin + 45; // Default 45 min
+  if (event.endTime) {
+    [endHour, endMin] = event.endTime.split(":").map(Number);
+  }
+  
+  // Format dates for ICS (YYYYMMDDTHHMMSS format, in local time with timezone)
+  const formatDate = (y: number, m: number, d: number, h: number, min: number) => {
+    return `${y}${String(m).padStart(2, "0")}${String(d).padStart(2, "0")}T${String(h).padStart(2, "0")}${String(min).padStart(2, "0")}00`;
+  };
+  
+  const dtStart = formatDate(year, month, day, startHour, startMin);
+  const dtEnd = formatDate(year, month, day, endHour, endMin);
+  const now = new Date();
+  const dtStamp = formatDate(
+    now.getFullYear(),
+    now.getMonth() + 1,
+    now.getDate(),
+    now.getHours(),
+    now.getMinutes()
+  );
+  
+  // Escape special characters for ICS
+  const escapeICS = (text: string) => {
+    return text.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
+  };
+  
+  const ics = [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Pangia Schedule//EN",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    "BEGIN:VTIMEZONE",
+    "TZID:Asia/Bangkok",
+    "BEGIN:STANDARD",
+    "DTSTART:19700101T000000",
+    "TZOFFSETFROM:+0700",
+    "TZOFFSETTO:+0700",
+    "END:STANDARD",
+    "END:VTIMEZONE",
+    "BEGIN:VEVENT",
+    `DTSTART;TZID=Asia/Bangkok:${dtStart}`,
+    `DTEND;TZID=Asia/Bangkok:${dtEnd}`,
+    `DTSTAMP:${dtStamp}Z`,
+    `UID:${event.id}@pangia-schedule`,
+    `SUMMARY:${escapeICS(event.title)}`,
+    `DESCRIPTION:${escapeICS(event.description)}${event.bookingUrl ? `\\n\\nBook: ${event.bookingUrl}` : ""}`,
+    `LOCATION:${escapeICS(event.venue.name + ", " + event.venue.address)}`,
+    `GEO:${event.venue.googleMapsUrl}`,
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].join("\r\n");
+  
+  return ics;
+}
+
+// Download ICS file
+function downloadICS(event: Event) {
+  const ics = generateICS(event);
+  const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+  const url = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `${event.title.replace(/[^a-z0-9]/gi, "_").substring(0, 50)}.ics`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(url);
+}
+
 interface LiveAvailability {
   spotsAvailable: number | null;
   isSoldOut: boolean;
@@ -261,15 +338,14 @@ export default function EventCard({
                 {event.bookingUrl && event.type === "side_event" ? "Map" : "Open in Maps"}
               </a>
               
-              {/* Calendar button - only show if no booking URL or for main conference */}
-              {(!event.bookingUrl || event.type === "main_conference") && (
-                <button
-                  className="flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-white/10 text-white/70 text-sm font-medium touch-feedback"
-                >
-                  <Calendar className="w-4 h-4" />
-                  Add to Cal
-                </button>
-              )}
+              {/* Calendar button - show for all events */}
+              <button
+                onClick={() => downloadICS(event)}
+                className={`${event.bookingUrl && event.type === "side_event" ? "" : "flex-1"} flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-white/10 text-white/70 text-sm font-medium touch-feedback hover:bg-white/20 active:bg-white/30 transition-colors`}
+              >
+                <Calendar className="w-4 h-4" />
+                Add to Cal
+              </button>
             </div>
           </div>
         </div>
