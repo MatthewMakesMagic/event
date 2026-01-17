@@ -1,11 +1,23 @@
 import { Redis } from "@upstash/redis";
 
-// Initialize Redis client
-// Will use environment variables: UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN
-export const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL!,
-  token: process.env.UPSTASH_REDIS_REST_TOKEN!,
-});
+// Initialize Redis client (only if env vars are set)
+const hasRedisConfig = process.env.UPSTASH_REDIS_REST_URL && process.env.UPSTASH_REDIS_REST_TOKEN;
+
+export const redis = hasRedisConfig
+  ? new Redis({
+      url: process.env.UPSTASH_REDIS_REST_URL!,
+      token: process.env.UPSTASH_REDIS_REST_TOKEN!,
+    })
+  : null;
+
+// Check if Redis is available
+const checkRedis = () => {
+  if (!redis) {
+    console.warn("Redis not configured - using empty defaults");
+    return false;
+  }
+  return true;
+};
 
 // Keys
 const INTERESTS_KEY = "pangia:interests"; // Hash: eventId -> count
@@ -15,15 +27,22 @@ const EMERGENT_EVENTS_KEY = "pangia:emergent_events"; // List of emergent events
 // ============ INTERESTS ============
 
 export async function getInterestCounts(): Promise<Record<string, number>> {
-  const counts = await redis.hgetall(INTERESTS_KEY);
-  if (!counts) return {};
+  if (!checkRedis()) return {};
   
-  // Convert string values to numbers
-  const result: Record<string, number> = {};
-  for (const [key, value] of Object.entries(counts)) {
-    result[key] = typeof value === "number" ? value : parseInt(value as string, 10) || 0;
+  try {
+    const counts = await redis!.hgetall(INTERESTS_KEY);
+    if (!counts) return {};
+    
+    // Convert string values to numbers
+    const result: Record<string, number> = {};
+    for (const [key, value] of Object.entries(counts)) {
+      result[key] = typeof value === "number" ? value : parseInt(value as string, 10) || 0;
+    }
+    return result;
+  } catch (error) {
+    console.error("Redis getInterestCounts error:", error);
+    return {};
   }
-  return result;
 }
 
 export async function toggleInterest(
@@ -31,25 +50,34 @@ export async function toggleInterest(
   deviceId: string,
   action: "add" | "remove"
 ): Promise<{ count: number; hasInterest: boolean }> {
-  // Get current device set for this event
-  const devicesJson = await redis.hget(INTEREST_DEVICES_KEY, eventId);
-  const devices: Set<string> = devicesJson 
-    ? new Set(JSON.parse(devicesJson as string)) 
-    : new Set();
-
-  if (action === "add") {
-    devices.add(deviceId);
-  } else {
-    devices.delete(deviceId);
+  if (!checkRedis()) {
+    return { count: 0, hasInterest: action === "add" };
   }
+  
+  try {
+    // Get current device set for this event
+    const devicesJson = await redis!.hget(INTEREST_DEVICES_KEY, eventId);
+    const devices: Set<string> = devicesJson 
+      ? new Set(JSON.parse(devicesJson as string)) 
+      : new Set();
 
-  const count = devices.size;
+    if (action === "add") {
+      devices.add(deviceId);
+    } else {
+      devices.delete(deviceId);
+    }
 
-  // Update both hashes
-  await redis.hset(INTEREST_DEVICES_KEY, { [eventId]: JSON.stringify([...devices]) });
-  await redis.hset(INTERESTS_KEY, { [eventId]: count });
+    const count = devices.size;
 
-  return { count, hasInterest: devices.has(deviceId) };
+    // Update both hashes
+    await redis!.hset(INTEREST_DEVICES_KEY, { [eventId]: JSON.stringify([...devices]) });
+    await redis!.hset(INTERESTS_KEY, { [eventId]: count });
+
+    return { count, hasInterest: devices.has(deviceId) };
+  } catch (error) {
+    console.error("Redis toggleInterest error:", error);
+    return { count: 0, hasInterest: action === "add" };
+  }
 }
 
 // ============ EMERGENT EVENTS ============
@@ -70,54 +98,81 @@ export interface EmergentEvent {
 }
 
 export async function getEmergentEvents(): Promise<EmergentEvent[]> {
-  const events = await redis.lrange(EMERGENT_EVENTS_KEY, 0, -1);
-  if (!events || events.length === 0) return [];
+  if (!checkRedis()) return [];
   
-  // Parse events - they come back as objects from Redis
-  const parsedEvents = events.map((e) => {
-    if (typeof e === "string") {
-      return JSON.parse(e) as EmergentEvent;
-    }
-    return e as EmergentEvent;
-  });
-  
-  return parsedEvents.sort((a, b) => {
-    if (a.date !== b.date) return a.date.localeCompare(b.date);
-    return a.startTime.localeCompare(b.startTime);
-  });
+  try {
+    const events = await redis!.lrange(EMERGENT_EVENTS_KEY, 0, -1);
+    if (!events || events.length === 0) return [];
+    
+    // Parse events - they come back as objects from Redis
+    const parsedEvents = events.map((e) => {
+      if (typeof e === "string") {
+        return JSON.parse(e) as EmergentEvent;
+      }
+      return e as EmergentEvent;
+    });
+    
+    return parsedEvents.sort((a, b) => {
+      if (a.date !== b.date) return a.date.localeCompare(b.date);
+      return a.startTime.localeCompare(b.startTime);
+    });
+  } catch (error) {
+    console.error("Redis getEmergentEvents error:", error);
+    return [];
+  }
 }
 
 export async function addEmergentEvent(event: EmergentEvent): Promise<void> {
-  await redis.lpush(EMERGENT_EVENTS_KEY, event);
+  if (!checkRedis()) return;
+  
+  try {
+    await redis!.lpush(EMERGENT_EVENTS_KEY, event);
+  } catch (error) {
+    console.error("Redis addEmergentEvent error:", error);
+  }
 }
 
 export async function deleteEmergentEvent(eventId: string, deviceId: string): Promise<boolean> {
-  const events = await getEmergentEvents();
-  const event = events.find(e => e.id === eventId);
+  if (!checkRedis()) return false;
   
-  if (!event || event.deviceId !== deviceId) {
+  try {
+    const events = await getEmergentEvents();
+    const event = events.find(e => e.id === eventId);
+    
+    if (!event || event.deviceId !== deviceId) {
+      return false;
+    }
+
+    // Remove and re-add all except the deleted one
+    const remaining = events.filter(e => e.id !== eventId);
+    await redis!.del(EMERGENT_EVENTS_KEY);
+    
+    if (remaining.length > 0) {
+      await redis!.rpush(EMERGENT_EVENTS_KEY, ...remaining);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Redis deleteEmergentEvent error:", error);
     return false;
   }
-
-  // Remove and re-add all except the deleted one
-  const remaining = events.filter(e => e.id !== eventId);
-  await redis.del(EMERGENT_EVENTS_KEY);
-  
-  if (remaining.length > 0) {
-    await redis.rpush(EMERGENT_EVENTS_KEY, ...remaining);
-  }
-  
-  return true;
 }
 
 export async function countEventsInHourSlot(date: string, time: string): Promise<number> {
-  const events = await getEmergentEvents();
-  const hour = time.split(":")[0];
-  const slot = `${date}-${hour}`;
+  if (!checkRedis()) return 0;
   
-  return events.filter(e => {
-    const eventHour = e.startTime.split(":")[0];
-    return `${e.date}-${eventHour}` === slot;
-  }).length;
+  try {
+    const events = await getEmergentEvents();
+    const hour = time.split(":")[0];
+    const slot = `${date}-${hour}`;
+    
+    return events.filter(e => {
+      const eventHour = e.startTime.split(":")[0];
+      return `${e.date}-${eventHour}` === slot;
+    }).length;
+  } catch (error) {
+    console.error("Redis countEventsInHourSlot error:", error);
+    return 0;
+  }
 }
 
