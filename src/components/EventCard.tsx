@@ -5,12 +5,20 @@ import { Event } from "@/data/events";
 import { MapPin, Clock, Users, Calendar, ChevronDown, ChevronUp, Ticket, ExternalLink } from "lucide-react";
 import InterestButton from "./InterestButton";
 
+interface LiveAvailability {
+  spotsAvailable: number | null;
+  isSoldOut: boolean;
+  isLive: boolean;
+  lastChecked: number | null;
+}
+
 interface EventCardProps {
   event: Event;
   isLive?: boolean;
   hasInterest: boolean;
   interestCount: number;
   onToggleInterest: (eventId: string) => void;
+  liveAvailability?: LiveAvailability;
 }
 
 export default function EventCard({ 
@@ -19,11 +27,17 @@ export default function EventCard({
   hasInterest,
   interestCount,
   onToggleInterest,
+  liveAvailability,
 }: EventCardProps) {
   const [isExpanded, setIsExpanded] = useState(false);
   
   const isFree = event.pricing.premiumAttendee === 0 && event.pricing.standardAttendee === 0;
   const isPremium = event.pricing.premiumAttendee > 0 || event.pricing.nonAttendee > 500;
+  
+  // Use live availability data if available, otherwise fall back to event data
+  const spotsAvailable = liveAvailability?.spotsAvailable ?? event.spotsAvailable ?? null;
+  const isSoldOut = liveAvailability?.isSoldOut ?? event.isSoldOut ?? false;
+  const hasLiveData = liveAvailability?.isLive ?? false;
   
   // Don't show interest for breaks/announcements
   const showInterest = !event.isBreak && event.type === "side_event";
@@ -75,17 +89,17 @@ export default function EventCard({
                   Live
                 </span>
               )}
-              {event.isSoldOut && (
+              {isSoldOut && (
                 <span className="text-2xs font-medium text-golden-coral bg-golden-coral/10 px-2 py-0.5 rounded-full uppercase tracking-wide">
-                  Sold Out
+                  Sold Out{hasLiveData && " ✓"}
                 </span>
               )}
-              {isPremium && !event.isSoldOut && (
+              {isPremium && !isSoldOut && (
                 <span className="text-2xs font-medium text-twilight-magenta bg-twilight-magenta/10 px-2 py-0.5 rounded-full uppercase tracking-wide">
                   Premium
                 </span>
               )}
-              {isFree && !event.isSoldOut && !event.isBreak && (
+              {isFree && !isSoldOut && !event.isBreak && (
                 <span className="text-2xs font-medium text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full uppercase tracking-wide">
                   Free
                 </span>
@@ -99,7 +113,7 @@ export default function EventCard({
             
             {/* Title */}
             <h3 className={`font-semibold leading-tight mb-1.5 ${isExpanded ? "" : "line-clamp-2"} ${
-              event.isSoldOut || event.isBreak ? "text-white/50" : "text-white"
+              isSoldOut || event.isBreak ? "text-white/50" : "text-white"
             }`}>
               {event.title}
             </h3>
@@ -137,10 +151,10 @@ export default function EventCard({
                   {event.venue.name}
                 </span>
               )}
-              {event.spotsAvailable !== undefined && event.spotsAvailable > 0 && !event.isSoldOut && event.type === "side_event" && (
+              {spotsAvailable !== null && spotsAvailable > 0 && !isSoldOut && event.type === "side_event" && (
                 <span className="flex items-center gap-1 text-daybreak-gold/70">
                   <Users className="w-3 h-3" />
-                  {event.spotsAvailable} public spots
+                  {spotsAvailable} public spots{hasLiveData && " ✓"}
                 </span>
               )}
             </div>
@@ -224,15 +238,15 @@ export default function EventCard({
                   target="_blank"
                   rel="noopener noreferrer"
                   className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-medium touch-feedback ${
-                    event.isSoldOut 
+                    isSoldOut 
                       ? "bg-white/5 text-white/40 cursor-not-allowed"
                       : "bg-gradient-to-r from-golden-coral to-golden-dusty text-white"
                   }`}
-                  onClick={(e) => event.isSoldOut && e.preventDefault()}
+                  onClick={(e) => isSoldOut && e.preventDefault()}
                 >
                   <Ticket className="w-4 h-4" />
-                  {event.isSoldOut ? "Sold Out" : "Book Now"}
-                  {!event.isSoldOut && <ExternalLink className="w-3 h-3" />}
+                  {isSoldOut ? "Sold Out" : "Book Now"}
+                  {!isSoldOut && <ExternalLink className="w-3 h-3" />}
                 </a>
               )}
               

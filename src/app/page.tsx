@@ -11,6 +11,7 @@ import AddEventModal from "@/components/AddEventModal";
 import EmergentEventCard from "@/components/EmergentEventCard";
 import { useSharedInterest } from "@/hooks/useSharedInterest";
 import { useEmergentEvents } from "@/hooks/useEmergentEvents";
+import { useAvailability } from "@/hooks/useAvailability";
 import { Plus } from "lucide-react";
 import {
   ALL_EVENTS,
@@ -37,6 +38,9 @@ export default function Home() {
     deleteEvent, 
     isOwnEvent,
   } = useEmergentEvents();
+  
+  // Live availability data (updated by cron job every 15 min)
+  const { getEventAvailability, staleness } = useAvailability();
   
   // Initialize with current date in Bangkok timezone
   useEffect(() => {
@@ -215,6 +219,7 @@ export default function Home() {
               hasInterest={hasInterest}
               getInterestCount={getInterestCount}
               onToggleInterest={toggleInterest}
+              getEventAvailability={getEventAvailability}
             />
           </>
         )}

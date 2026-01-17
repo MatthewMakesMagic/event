@@ -9,6 +9,16 @@ interface TimelineProps {
   hasInterest: (eventId: string) => boolean;
   getInterestCount: (eventId: string) => number;
   onToggleInterest: (eventId: string) => void;
+  getEventAvailability?: (
+    eventId: string,
+    defaultSpots?: number,
+    defaultSoldOut?: boolean
+  ) => {
+    spotsAvailable: number | null;
+    isSoldOut: boolean;
+    isLive: boolean;
+    lastChecked: number | null;
+  };
 }
 
 function groupEventsByTime(events: Event[]): Map<string, Event[]> {
@@ -40,6 +50,7 @@ export default function Timeline({
   hasInterest,
   getInterestCount,
   onToggleInterest,
+  getEventAvailability,
 }: TimelineProps) {
   const sortedEvents = [...events].sort((a, b) => {
     return a.startTime.localeCompare(b.startTime);
@@ -74,16 +85,29 @@ export default function Timeline({
           
           {/* Events */}
           <div className="pl-[76px] space-y-3">
-            {groupedEvents.get(timeSlot)!.map((event) => (
-              <EventCard
-                key={event.id}
-                event={event}
-                isLive={isEventLive(event, currentTime)}
-                hasInterest={hasInterest(event.id)}
-                interestCount={getInterestCount(event.id)}
-                onToggleInterest={onToggleInterest}
-              />
-            ))}
+            {groupedEvents.get(timeSlot)!.map((event) => {
+              // Get live availability if available, fallback to event defaults
+              const availability = getEventAvailability
+                ? getEventAvailability(event.id, event.spotsAvailable, event.isSoldOut)
+                : {
+                    spotsAvailable: event.spotsAvailable ?? null,
+                    isSoldOut: event.isSoldOut ?? false,
+                    isLive: false,
+                    lastChecked: null,
+                  };
+              
+              return (
+                <EventCard
+                  key={event.id}
+                  event={event}
+                  isLive={isEventLive(event, currentTime)}
+                  hasInterest={hasInterest(event.id)}
+                  interestCount={getInterestCount(event.id)}
+                  onToggleInterest={onToggleInterest}
+                  liveAvailability={availability}
+                />
+              );
+            })}
           </div>
         </div>
       ))}

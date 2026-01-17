@@ -23,6 +23,8 @@ const checkRedis = () => {
 const INTERESTS_KEY = "pangia:interests"; // Hash: eventId -> count
 const INTEREST_DEVICES_KEY = "pangia:interest_devices"; // Hash: eventId -> Set of deviceIds (as JSON)
 const EMERGENT_EVENTS_KEY = "pangia:emergent_events"; // List of emergent events
+const AVAILABILITY_KEY = "pangia:availability"; // Hash: eventId -> availability JSON
+const AVAILABILITY_LAST_RUN_KEY = "pangia:availability_last_run"; // Timestamp of last cron run
 
 // ============ INTERESTS ============
 
@@ -176,3 +178,85 @@ export async function countEventsInHourSlot(date: string, time: string): Promise
   }
 }
 
+// ============ AVAILABILITY ============
+
+export interface StoredAvailability {
+  eventId: string;
+  spotsAvailable: number | null;
+  isSoldOut: boolean;
+  lastChecked: number;
+  error?: string;
+}
+
+export async function getAvailability(): Promise<Record<string, StoredAvailability>> {
+  if (!checkRedis()) return {};
+  
+  try {
+    const data = await redis!.hgetall(AVAILABILITY_KEY);
+    if (!data) return {};
+    
+    const result: Record<string, StoredAvailability> = {};
+    for (const [key, value] of Object.entries(data)) {
+      if (typeof value === "string") {
+        result[key] = JSON.parse(value);
+      } else {
+        result[key] = value as StoredAvailability;
+      }
+    }
+    return result;
+  } catch (error) {
+    console.error("Redis getAvailability error:", error);
+    return {};
+  }
+}
+
+export async function setAvailability(
+  eventId: string,
+  availability: StoredAvailability
+): Promise<void> {
+  if (!checkRedis()) return;
+  
+  try {
+    await redis!.hset(AVAILABILITY_KEY, { [eventId]: JSON.stringify(availability) });
+  } catch (error) {
+    console.error("Redis setAvailability error:", error);
+  }
+}
+
+export async function setMultipleAvailability(
+  availabilities: StoredAvailability[]
+): Promise<void> {
+  if (!checkRedis()) return;
+  
+  try {
+    const data: Record<string, string> = {};
+    for (const a of availabilities) {
+      data[a.eventId] = JSON.stringify(a);
+    }
+    await redis!.hset(AVAILABILITY_KEY, data);
+  } catch (error) {
+    console.error("Redis setMultipleAvailability error:", error);
+  }
+}
+
+export async function getLastAvailabilityRun(): Promise<number | null> {
+  if (!checkRedis()) return null;
+  
+  try {
+    const timestamp = await redis!.get(AVAILABILITY_LAST_RUN_KEY);
+    return timestamp ? Number(timestamp) : null;
+  } catch (error) {
+    console.error("Redis getLastAvailabilityRun error:", error);
+    return null;
+  }
+}
+
+export async function setLastAvailabilityRun(timestamp: number): Promise<void> {
+  if (!checkRedis()) return;
+  
+  try {
+    await redis!.set(AVAILABILITY_LAST_RUN_KEY, timestamp);
+  } catch (error) {
+    console.error("Redis setLastAvailabilityRun error:", error);
+  }
+}
