@@ -27,6 +27,7 @@ export default function Home() {
   const [selectedDate, setSelectedDate] = useState<string>("");
   const [eventType, setEventType] = useState<"all" | "main_conference" | "side_event">("main_conference");
   const [showAddModal, setShowAddModal] = useState(false);
+  const [scrollToEventId, setScrollToEventId] = useState<string | null>(null);
   
   // Shared interest system (syncs across devices)
   const { toggleInterest, hasInterest, getInterestCount, isLoaded } = useSharedInterest();
@@ -103,11 +104,14 @@ export default function Home() {
   // All events for "Happening Now"
   const allEventsForLive = useMemo(() => ALL_EVENTS, []);
   
-  // Handle event click from HappeningNow
+  // Handle event click from HappeningNow or Search
   const handleEventClick = (event: Event) => {
     setSelectedDate(event.date);
     setEventType(event.type === "main_conference" ? "main_conference" : "side_event");
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    // Set the event to scroll to - this will trigger the Timeline to scroll
+    setScrollToEventId(event.id);
+    // Clear after a delay so it can be set again for the same event
+    setTimeout(() => setScrollToEventId(null), 3000);
   };
   
   // Get day info for header
@@ -219,6 +223,7 @@ export default function Home() {
               hasInterest={hasInterest}
               getInterestCount={getInterestCount}
               onToggleInterest={toggleInterest}
+              scrollToEventId={scrollToEventId}
               getEventAvailability={getEventAvailability}
             />
           </>

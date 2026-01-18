@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useRef } from "react";
 import { Event, isEventLive } from "@/data/events";
 import EventCard from "./EventCard";
 
@@ -9,6 +10,7 @@ interface TimelineProps {
   hasInterest: (eventId: string) => boolean;
   getInterestCount: (eventId: string) => number;
   onToggleInterest: (eventId: string) => void;
+  scrollToEventId?: string | null;
   getEventAvailability?: (
     eventId: string,
     defaultSpots?: number,
@@ -50,8 +52,29 @@ export default function Timeline({
   hasInterest,
   getInterestCount,
   onToggleInterest,
+  scrollToEventId,
   getEventAvailability,
 }: TimelineProps) {
+  const eventRefs = useRef<Map<string, HTMLDivElement>>(new Map());
+  
+  // Scroll to event when scrollToEventId changes
+  useEffect(() => {
+    if (scrollToEventId) {
+      const element = eventRefs.current.get(scrollToEventId);
+      if (element) {
+        // Small delay to ensure DOM is ready after date/type changes
+        setTimeout(() => {
+          element.scrollIntoView({ behavior: "smooth", block: "center" });
+          // Add a brief highlight effect
+          element.classList.add("ring-2", "ring-dawn-teal", "ring-opacity-50");
+          setTimeout(() => {
+            element.classList.remove("ring-2", "ring-dawn-teal", "ring-opacity-50");
+          }, 2000);
+        }, 100);
+      }
+    }
+  }, [scrollToEventId]);
+  
   const sortedEvents = [...events].sort((a, b) => {
     return a.startTime.localeCompare(b.startTime);
   });
@@ -97,15 +120,24 @@ export default function Timeline({
                   };
               
               return (
-                <EventCard
+                <div
                   key={event.id}
-                  event={event}
-                  isLive={isEventLive(event, currentTime)}
-                  hasInterest={hasInterest(event.id)}
-                  interestCount={getInterestCount(event.id)}
-                  onToggleInterest={onToggleInterest}
-                  liveAvailability={availability}
-                />
+                  ref={(el) => {
+                    if (el) {
+                      eventRefs.current.set(event.id, el);
+                    }
+                  }}
+                  className="transition-all duration-300"
+                >
+                  <EventCard
+                    event={event}
+                    isLive={isEventLive(event, currentTime)}
+                    hasInterest={hasInterest(event.id)}
+                    interestCount={getInterestCount(event.id)}
+                    onToggleInterest={onToggleInterest}
+                    liveAvailability={availability}
+                  />
+                </div>
               );
             })}
           </div>
