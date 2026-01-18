@@ -166,6 +166,7 @@ const VENUES: Record<string, Venue> = {
 
 // Main Conference Events - CORRECTED based on official Program & Agenda
 // Source: https://www.nomadsummit.com/program-agenda-26/
+// Last verified: Jan 18, 2026
 // Day 0: Friday Jan 16, 2026
 // Day 1: Saturday Jan 17, 2026
 // Day 2: Sunday Jan 18, 2026
