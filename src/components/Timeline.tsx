@@ -95,19 +95,19 @@ export default function Timeline({
   }
   
   return (
-    <div className="space-y-6">
+    <div className="space-y-5">
       {timeSlots.map((timeSlot) => (
         <div key={timeSlot} className="relative">
           {/* Time Marker */}
-          <div className="flex items-center gap-3 mb-3">
-            <div className="flex-shrink-0 w-16 text-xs font-medium text-white/50">
+          <div className="flex items-center gap-2 mb-2">
+            <div className="flex-shrink-0 text-2xs font-medium text-white/40 tabular-nums min-w-[52px]">
               {formatTimeSlot(timeSlot)}
             </div>
             <div className="flex-1 h-px bg-white/10" />
           </div>
           
-          {/* Events */}
-          <div className="pl-[76px] space-y-3">
+          {/* Events - reduced left indent for more screen space */}
+          <div className="space-y-3">
             {groupedEvents.get(timeSlot)!.map((event) => {
               // Get live availability if available, fallback to event defaults
               const availability = getEventAvailability

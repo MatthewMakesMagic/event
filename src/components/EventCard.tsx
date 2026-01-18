@@ -5,19 +5,81 @@ import { Event } from "@/data/events";
 import { MapPin, Clock, Users, Calendar, ChevronDown, ChevronUp, Ticket, ExternalLink, Share2 } from "lucide-react";
 import InterestButton from "./InterestButton";
 
-// Generate Google Calendar URL - works great on mobile!
-function generateGoogleCalendarUrl(event: Event): string {
+// App domain
+const APP_DOMAIN = "https://theschedule.vercel.app";
+
+// Detect if user is on Android
+function isAndroid(): boolean {
+  if (typeof navigator === "undefined") return false;
+  return /android/i.test(navigator.userAgent);
+}
+
+// Generate ICS calendar file content (for iOS/Mac - respects default calendar app)
+function generateICS(event: Event): string {
   const [year, month, day] = event.date.split("-").map(Number);
   const [startHour, startMin] = event.startTime.split(":").map(Number);
   
-  // Calculate end time
   let endHour = startHour;
-  let endMin = startMin + 45; // Default 45 min
+  let endMin = startMin + 45;
   if (event.endTime) {
     [endHour, endMin] = event.endTime.split(":").map(Number);
   }
   
-  // Format dates for Google Calendar (YYYYMMDDTHHMMSS format)
+  const formatDate = (y: number, m: number, d: number, h: number, min: number) => {
+    return `${y}${String(m).padStart(2, "0")}${String(d).padStart(2, "0")}T${String(h).padStart(2, "0")}${String(min).padStart(2, "0")}00`;
+  };
+  
+  const dtStart = formatDate(year, month, day, startHour, startMin);
+  const dtEnd = formatDate(year, month, day, endHour, endMin);
+  const now = new Date();
+  const dtStamp = formatDate(now.getFullYear(), now.getMonth() + 1, now.getDate(), now.getHours(), now.getMinutes());
+  
+  const escapeICS = (text: string) => text.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
+  
+  let description = event.shortDescription || event.description;
+  if (event.bookingUrl) {
+    description += `\n\nBook: ${event.bookingUrl}`;
+  }
+  description += `\n\nView all events: ${APP_DOMAIN}/?event=${event.id}`;
+  
+  return [
+    "BEGIN:VCALENDAR",
+    "VERSION:2.0",
+    "PRODID:-//Pangia Schedule//EN",
+    "CALSCALE:GREGORIAN",
+    "METHOD:PUBLISH",
+    "BEGIN:VTIMEZONE",
+    "TZID:Asia/Bangkok",
+    "BEGIN:STANDARD",
+    "DTSTART:19700101T000000",
+    "TZOFFSETFROM:+0700",
+    "TZOFFSETTO:+0700",
+    "END:STANDARD",
+    "END:VTIMEZONE",
+    "BEGIN:VEVENT",
+    `DTSTART;TZID=Asia/Bangkok:${dtStart}`,
+    `DTEND;TZID=Asia/Bangkok:${dtEnd}`,
+    `DTSTAMP:${dtStamp}Z`,
+    `UID:${event.id}@theschedule`,
+    `SUMMARY:${escapeICS(`${event.emoji || ""} ${event.title}`.trim())}`,
+    `DESCRIPTION:${escapeICS(description)}`,
+    `LOCATION:${escapeICS(event.venue.name + ", " + event.venue.address)}`,
+    "END:VEVENT",
+    "END:VCALENDAR",
+  ].join("\r\n");
+}
+
+// Generate Google Calendar URL (for Android)
+function generateGoogleCalendarUrl(event: Event): string {
+  const [year, month, day] = event.date.split("-").map(Number);
+  const [startHour, startMin] = event.startTime.split(":").map(Number);
+  
+  let endHour = startHour;
+  let endMin = startMin + 45;
+  if (event.endTime) {
+    [endHour, endMin] = event.endTime.split(":").map(Number);
+  }
+  
   const formatDate = (y: number, m: number, d: number, h: number, min: number) => {
     return `${y}${String(m).padStart(2, "0")}${String(d).padStart(2, "0")}T${String(h).padStart(2, "0")}${String(min).padStart(2, "0")}00`;
   };
@@ -25,12 +87,11 @@ function generateGoogleCalendarUrl(event: Event): string {
   const dtStart = formatDate(year, month, day, startHour, startMin);
   const dtEnd = formatDate(year, month, day, endHour, endMin);
   
-  // Build description with booking link
   let description = event.shortDescription || event.description;
   if (event.bookingUrl) {
     description += `\n\n🎟️ Book: ${event.bookingUrl}`;
   }
-  description += `\n\n📱 View all events: https://pangia-schedule.vercel.app/?event=${event.id}`;
+  description += `\n\n📱 View all events: ${APP_DOMAIN}/?event=${event.id}`;
   
   const params = new URLSearchParams({
     action: "TEMPLATE",
@@ -44,15 +105,29 @@ function generateGoogleCalendarUrl(event: Event): string {
   return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }
 
-// Open Google Calendar
+// Add to calendar - uses ICS for iOS/Mac (respects default calendar), Google Calendar for Android
 function addToCalendar(event: Event) {
-  const url = generateGoogleCalendarUrl(event);
-  window.open(url, "_blank");
+  if (isAndroid()) {
+    // Android: Use Google Calendar URL (opens in app)
+    window.open(generateGoogleCalendarUrl(event), "_blank");
+  } else {
+    // iOS/Mac/Desktop: Download ICS file (opens in default calendar app like Vimcal, Apple Calendar, etc.)
+    const ics = generateICS(event);
+    const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement("a");
+    link.href = url;
+    link.download = `${event.title.replace(/[^a-z0-9]/gi, "_").substring(0, 40)}.ics`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+  }
 }
 
 // Generate shareable event URL
 function getEventShareUrl(event: Event): string {
-  return `https://pangia-schedule.vercel.app/?event=${event.id}`;
+  return `${APP_DOMAIN}/?event=${event.id}`;
 }
 
 // Share event using Web Share API or fallback
@@ -82,7 +157,7 @@ async function shareEvent(event: Event) {
 
 ${event.shortDescription || event.description.slice(0, 150)}${event.description.length > 150 ? "..." : ""}
 
-👉 View & add to calendar:`;
+👉 Select to view and add to calendar:`;
 
   // Try Web Share API first (works great on mobile)
   if (navigator.share) {
