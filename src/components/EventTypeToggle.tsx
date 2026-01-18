@@ -35,3 +35,4 @@ export default function EventTypeToggle({ eventType, onTypeChange }: EventTypeTo
 }
 
 
+

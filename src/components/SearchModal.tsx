@@ -184,3 +184,4 @@ export default function SearchModal({ isOpen, onClose, onEventSelect }: SearchMo
 }
 
 
+
