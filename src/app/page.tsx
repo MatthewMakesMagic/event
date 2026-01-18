@@ -19,6 +19,7 @@ import {
   getCurrentDateICT,
   CONFERENCE_DATES,
   Event,
+  getEventById,
 } from "@/data/events";
 
 export default function Home() {
@@ -28,6 +29,7 @@ export default function Home() {
   const [eventType, setEventType] = useState<"all" | "main_conference" | "side_event">("main_conference");
   const [showAddModal, setShowAddModal] = useState(false);
   const [scrollToEventId, setScrollToEventId] = useState<string | null>(null);
+  const [initialEventHandled, setInitialEventHandled] = useState(false);
   
   // Shared interest system (syncs across devices)
   const { toggleInterest, hasInterest, getInterestCount, isLoaded } = useSharedInterest();
@@ -43,12 +45,40 @@ export default function Home() {
   // Live availability data (updated by cron job every 15 min)
   const { getEventAvailability, staleness } = useAvailability();
   
-  // Initialize with current date in Bangkok timezone
+  // Handle deep link from URL parameter (e.g., ?event=se-18)
   useEffect(() => {
+    if (initialEventHandled) return;
+    
+    const params = new URLSearchParams(window.location.search);
+    const eventId = params.get("event");
+    
+    if (eventId) {
+      const event = getEventById(eventId);
+      if (event) {
+        // Navigate to the event's date and type
+        setSelectedDate(event.date);
+        setEventType(event.type === "main_conference" ? "main_conference" : "side_event");
+        // Scroll to the event after a brief delay for UI to settle
+        setTimeout(() => {
+          setScrollToEventId(event.id);
+          setTimeout(() => setScrollToEventId(null), 3000);
+        }, 500);
+        setInitialEventHandled(true);
+        
+        // Clean up URL (remove query param) without reload
+        const url = new URL(window.location.href);
+        url.searchParams.delete("event");
+        window.history.replaceState({}, "", url.pathname);
+        return;
+      }
+    }
+    
+    // Default: Initialize with current date in Bangkok timezone
     const today = getCurrentDateICT();
     const isConferenceDay = CONFERENCE_DATES.some(d => d.date === today);
     setSelectedDate(isConferenceDay ? today : "2026-01-17");
-  }, []);
+    setInitialEventHandled(true);
+  }, [initialEventHandled]);
   
   // Update current time every 30 seconds
   useEffect(() => {

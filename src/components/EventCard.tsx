@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import { Event } from "@/data/events";
-import { MapPin, Clock, Users, Calendar, ChevronDown, ChevronUp, Ticket, ExternalLink } from "lucide-react";
+import { MapPin, Clock, Users, Calendar, ChevronDown, ChevronUp, Ticket, ExternalLink, Share2 } from "lucide-react";
 import InterestButton from "./InterestButton";
 
-// Generate ICS calendar file content
-function generateICS(event: Event): string {
+// Generate Google Calendar URL - works great on mobile!
+function generateGoogleCalendarUrl(event: Event): string {
   const [year, month, day] = event.date.split("-").map(Number);
   const [startHour, startMin] = event.startTime.split(":").map(Number);
   
@@ -17,69 +17,110 @@ function generateICS(event: Event): string {
     [endHour, endMin] = event.endTime.split(":").map(Number);
   }
   
-  // Format dates for ICS (YYYYMMDDTHHMMSS format, in local time with timezone)
+  // Format dates for Google Calendar (YYYYMMDDTHHMMSS format)
   const formatDate = (y: number, m: number, d: number, h: number, min: number) => {
     return `${y}${String(m).padStart(2, "0")}${String(d).padStart(2, "0")}T${String(h).padStart(2, "0")}${String(min).padStart(2, "0")}00`;
   };
   
   const dtStart = formatDate(year, month, day, startHour, startMin);
   const dtEnd = formatDate(year, month, day, endHour, endMin);
-  const now = new Date();
-  const dtStamp = formatDate(
-    now.getFullYear(),
-    now.getMonth() + 1,
-    now.getDate(),
-    now.getHours(),
-    now.getMinutes()
-  );
   
-  // Escape special characters for ICS
-  const escapeICS = (text: string) => {
-    return text.replace(/\\/g, "\\\\").replace(/;/g, "\\;").replace(/,/g, "\\,").replace(/\n/g, "\\n");
-  };
+  // Build description with booking link
+  let description = event.shortDescription || event.description;
+  if (event.bookingUrl) {
+    description += `\n\n🎟️ Book: ${event.bookingUrl}`;
+  }
+  description += `\n\n📱 View all events: https://pangia-schedule.vercel.app/?event=${event.id}`;
   
-  const ics = [
-    "BEGIN:VCALENDAR",
-    "VERSION:2.0",
-    "PRODID:-//Pangia Schedule//EN",
-    "CALSCALE:GREGORIAN",
-    "METHOD:PUBLISH",
-    "BEGIN:VTIMEZONE",
-    "TZID:Asia/Bangkok",
-    "BEGIN:STANDARD",
-    "DTSTART:19700101T000000",
-    "TZOFFSETFROM:+0700",
-    "TZOFFSETTO:+0700",
-    "END:STANDARD",
-    "END:VTIMEZONE",
-    "BEGIN:VEVENT",
-    `DTSTART;TZID=Asia/Bangkok:${dtStart}`,
-    `DTEND;TZID=Asia/Bangkok:${dtEnd}`,
-    `DTSTAMP:${dtStamp}Z`,
-    `UID:${event.id}@pangia-schedule`,
-    `SUMMARY:${escapeICS(event.title)}`,
-    `DESCRIPTION:${escapeICS(event.description)}${event.bookingUrl ? `\\n\\nBook: ${event.bookingUrl}` : ""}`,
-    `LOCATION:${escapeICS(event.venue.name + ", " + event.venue.address)}`,
-    `GEO:${event.venue.googleMapsUrl}`,
-    "END:VEVENT",
-    "END:VCALENDAR",
-  ].join("\r\n");
+  const params = new URLSearchParams({
+    action: "TEMPLATE",
+    text: `${event.emoji || "📅"} ${event.title}`,
+    dates: `${dtStart}/${dtEnd}`,
+    details: description,
+    location: `${event.venue.name}, ${event.venue.address}`,
+    ctz: "Asia/Bangkok",
+  });
   
-  return ics;
+  return `https://calendar.google.com/calendar/render?${params.toString()}`;
 }
 
-// Download ICS file
-function downloadICS(event: Event) {
-  const ics = generateICS(event);
-  const blob = new Blob([ics], { type: "text/calendar;charset=utf-8" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `${event.title.replace(/[^a-z0-9]/gi, "_").substring(0, 50)}.ics`;
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
-  URL.revokeObjectURL(url);
+// Open Google Calendar
+function addToCalendar(event: Event) {
+  const url = generateGoogleCalendarUrl(event);
+  window.open(url, "_blank");
+}
+
+// Generate shareable event URL
+function getEventShareUrl(event: Event): string {
+  return `https://pangia-schedule.vercel.app/?event=${event.id}`;
+}
+
+// Share event using Web Share API or fallback
+async function shareEvent(event: Event) {
+  const shareUrl = getEventShareUrl(event);
+  const shareTitle = `${event.emoji || "📅"} ${event.title}`;
+  
+  // Format date nicely
+  const dateObj = new Date(event.date + "T00:00:00");
+  const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+  const monthNames = ["Jan", "Feb", "Mar", "Apr", "May", "Jun", "Jul", "Aug", "Sep", "Oct", "Nov", "Dec"];
+  const formattedDate = `${dayNames[dateObj.getDay()]}, ${monthNames[dateObj.getMonth()]} ${dateObj.getDate()}`;
+  
+  // Format time nicely (convert 24h to 12h)
+  const formatTime = (time: string) => {
+    const [h, m] = time.split(":").map(Number);
+    const ampm = h >= 12 ? "PM" : "AM";
+    const hour12 = h % 12 || 12;
+    return `${hour12}:${String(m).padStart(2, "0")} ${ampm}`;
+  };
+  
+  const shareText = `${shareTitle}
+
+📍 ${event.venue.name}
+📅 ${formattedDate}
+🕐 ${formatTime(event.startTime)}${event.endTime ? ` - ${formatTime(event.endTime)}` : ""}
+
+${event.shortDescription || event.description.slice(0, 150)}${event.description.length > 150 ? "..." : ""}
+
+👉 View & add to calendar:`;
+
+  // Try Web Share API first (works great on mobile)
+  if (navigator.share) {
+    try {
+      await navigator.share({
+        title: shareTitle,
+        text: shareText,
+        url: shareUrl,
+      });
+      return;
+    } catch (err) {
+      // User cancelled or share failed, fall through to clipboard
+      if ((err as Error).name === "AbortError") return;
+    }
+  }
+  
+  // Fallback: Copy to clipboard
+  try {
+    await navigator.clipboard.writeText(`${shareText}\n${shareUrl}`);
+    // Show a brief toast/notification
+    showToast("Link copied to clipboard!");
+  } catch {
+    // Last resort: prompt user to copy
+    prompt("Copy this link to share:", shareUrl);
+  }
+}
+
+// Simple toast notification
+function showToast(message: string) {
+  const toast = document.createElement("div");
+  toast.textContent = message;
+  toast.className = "fixed bottom-20 left-1/2 -translate-x-1/2 bg-white/20 backdrop-blur-md text-white px-4 py-2 rounded-full text-sm font-medium z-50 animate-fade-in";
+  document.body.appendChild(toast);
+  setTimeout(() => {
+    toast.style.opacity = "0";
+    toast.style.transition = "opacity 0.3s";
+    setTimeout(() => document.body.removeChild(toast), 300);
+  }, 2000);
 }
 
 interface LiveAvailability {
@@ -307,14 +348,14 @@ export default function EventCard({
             )}
             
             {/* Actions */}
-            <div className="flex gap-2">
+            <div className="flex gap-2 flex-wrap">
               {/* Book button - only for side events with booking URL */}
               {event.bookingUrl && event.type === "side_event" && (
                 <a
                   href={event.bookingUrl}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className={`flex-1 flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-medium touch-feedback ${
+                  className={`flex-1 min-w-[120px] flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg text-sm font-medium touch-feedback ${
                     isSoldOut 
                       ? "bg-white/5 text-white/40 cursor-not-allowed"
                       : "bg-gradient-to-r from-golden-coral to-golden-dusty text-white"
@@ -327,25 +368,34 @@ export default function EventCard({
                 </a>
               )}
               
+              {/* Calendar button - opens Google Calendar */}
+              <button
+                onClick={() => addToCalendar(event)}
+                className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-gradient-to-r from-twilight-magenta/30 to-twilight-pink/20 text-twilight-pink text-sm font-medium touch-feedback border border-twilight-pink/30 hover:bg-twilight-magenta/40 active:bg-twilight-magenta/50 transition-colors"
+              >
+                <Calendar className="w-4 h-4" />
+                Add to Cal
+              </button>
+              
+              {/* Share button */}
+              <button
+                onClick={() => shareEvent(event)}
+                className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-gradient-to-r from-dawn-teal/30 to-dawn-light/20 text-dawn-teal text-sm font-medium touch-feedback border border-dawn-teal/30 hover:bg-dawn-teal/40 active:bg-dawn-teal/50 transition-colors"
+              >
+                <Share2 className="w-4 h-4" />
+                Share
+              </button>
+              
               {/* Maps button */}
               <a
                 href={event.venue.googleMapsUrl}
                 target="_blank"
                 rel="noopener noreferrer"
-                className={`${event.bookingUrl && event.type === "side_event" ? "" : "flex-1"} flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-gradient-to-r from-dawn-teal/30 to-dawn-light/20 text-dawn-teal text-sm font-medium touch-feedback border border-dawn-teal/30`}
+                className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-white/10 text-white/70 text-sm font-medium touch-feedback hover:bg-white/20 active:bg-white/30 transition-colors"
               >
                 <MapPin className="w-4 h-4" />
-                {event.bookingUrl && event.type === "side_event" ? "Map" : "Open in Maps"}
+                Map
               </a>
-              
-              {/* Calendar button - show for all events */}
-              <button
-                onClick={() => downloadICS(event)}
-                className={`${event.bookingUrl && event.type === "side_event" ? "" : "flex-1"} flex items-center justify-center gap-2 py-2.5 px-4 rounded-lg bg-white/10 text-white/70 text-sm font-medium touch-feedback hover:bg-white/20 active:bg-white/30 transition-colors`}
-              >
-                <Calendar className="w-4 h-4" />
-                Add to Cal
-              </button>
             </div>
           </div>
         </div>
